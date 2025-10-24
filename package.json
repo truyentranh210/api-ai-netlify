@@ -1,0 +1,9 @@
+{
+  "name": "ai-api",
+  "version": "1.0.0",
+  "main": "functions/api.js",
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  },
+  "type": "module"
+}
