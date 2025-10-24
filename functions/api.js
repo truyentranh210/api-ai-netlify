@@ -1,28 +1,26 @@
 import fetch from "node-fetch";
 
-// 🔑 KEY CỦA HAI AI (thay vào đây)
-const OPENAI_KEY = "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";
-const GEMINI_KEY = "AIzaSyDOS3THCnDvlTIF_hUyD1M-uPZMmSyWxbE";
+// 🔒 Lấy key từ biến môi trường (set trong Netlify)
+const OPENAI_KEY = process.env.OPENAI_API_KEY;
+const GEMINI_KEY = process.env.GEMINI_API_KEY;
 
 export async function handler(event) {
-  const path = event.path;
+  const path = event.path.replace(/^\/\.netlify\/functions\/api/, ""); // nếu chưa có redirect
   const parts = path.split("/").filter(Boolean);
 
-  // Trang /home
   if (parts.length === 0 || parts[0] === "home") {
     return json({
       message: "✨ Welcome to AI API!",
       usage: {
         "/home": "Show this help message",
-        "/gpt/{question}": "Ask OpenAI GPT model",
-        "/gemini/{question}": "Ask Google Gemini model"
+        "/gpt/{question}": "Ask OpenAI GPT",
+        "/gemini/{question}": "Ask Google Gemini"
       }
     });
   }
 
   const route = parts[0];
-  const question = decodeURIComponent(parts.slice(1).join(" "));
-
+  const question = decodeURIComponent(parts.slice(1).join(" ")).trim();
   if (!question) return json({ error: "Missing question" }, 400);
 
   if (route === "gpt") {
@@ -38,15 +36,13 @@ export async function handler(event) {
   return json({ error: "Invalid route" }, 404);
 }
 
-// ==========================
-// 🔹 OPENAI GPT
-// ==========================
+// -------------------- GPT --------------------
 async function callGPT(prompt) {
   try {
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${OPENAI_KEY}`,
+        Authorization: `Bearer ${OPENAI_KEY}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
@@ -54,6 +50,7 @@ async function callGPT(prompt) {
         messages: [{ role: "user", content: prompt }]
       })
     });
+
     const data = await res.json();
     return data.choices?.[0]?.message?.content || data.error?.message || "⚠️ No reply from GPT";
   } catch (err) {
@@ -61,9 +58,7 @@ async function callGPT(prompt) {
   }
 }
 
-// ==========================
-// 🔹 GOOGLE GEMINI
-// ==========================
+// -------------------- GEMINI --------------------
 async function callGemini(prompt) {
   try {
     const res = await fetch(
@@ -87,9 +82,6 @@ async function callGemini(prompt) {
   }
 }
 
-// ==========================
-// 🔹 JSON Response helper
-// ==========================
 function json(body, status = 200) {
   return {
     statusCode: status,
