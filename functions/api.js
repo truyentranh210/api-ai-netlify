@@ -1,7 +1,7 @@
 import fetch from "node-fetch";
 
 // 🔑 KEY CỦA HAI AI (thay vào đây)
-const OPENAI_KEY = "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";
+const OPENAI_KEY = "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";
 const GEMINI_KEY = "AIzaSyDOS3THCnDvlTIF_hUyD1M-uPZMmSyWxbE";
 
 export async function handler(event) {
@@ -67,7 +67,7 @@ async function callGPT(prompt) {
 async function callGemini(prompt) {
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_KEY}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -77,7 +77,11 @@ async function callGemini(prompt) {
       }
     );
     const data = await res.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || data.error?.message || "⚠️ No reply from Gemini";
+    return (
+      data.candidates?.[0]?.content?.parts?.[0]?.text ||
+      data.error?.message ||
+      "⚠️ No reply from Gemini"
+    );
   } catch (err) {
     return `❌ Error: ${err.message}`;
   }
