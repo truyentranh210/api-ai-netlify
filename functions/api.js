@@ -9,19 +9,19 @@ export async function handler(event) {
   const parts = path.split("/").filter(Boolean);
 
   // Trang /home
-  if (parts.length === 1 || parts[1] === "home") {
+  if (parts.length === 0 || parts[0] === "home") {
     return json({
-      message: "✨ Welcome to your AI API!",
+      message: "✨ Welcome to AI API!",
       usage: {
-        "/home": "Show this guide",
-        "/gpt/{question}": "Ask OpenAI GPT",
-        "/gemini/{question}": "Ask Google Gemini"
+        "/home": "Show this help message",
+        "/gpt/{question}": "Ask OpenAI GPT model",
+        "/gemini/{question}": "Ask Google Gemini model"
       }
     });
   }
 
-  const route = parts[1];
-  const question = decodeURIComponent(parts.slice(2).join(" "));
+  const route = parts[0];
+  const question = decodeURIComponent(parts.slice(1).join(" "));
 
   if (!question) return json({ error: "Missing question" }, 400);
 
