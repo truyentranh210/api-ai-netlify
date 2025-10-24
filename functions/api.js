@@ -1,20 +1,22 @@
 import fetch from "node-fetch";
 
-// 🔒 Lấy key từ biến môi trường (set trong Netlify)
+// 🔒 Lấy key từ biến môi trường (đặt trong Netlify)
 const OPENAI_KEY = process.env.OPENAI_API_KEY;
 const GEMINI_KEY = process.env.GEMINI_API_KEY;
 
+// ======================== HANDLER ===========================
 export async function handler(event) {
-  const path = event.path.replace(/^\/\.netlify\/functions\/api/, ""); // nếu chưa có redirect
+  const path = event.path.replace(/^\/\.netlify\/functions\/api/, "");
   const parts = path.split("/").filter(Boolean);
 
   if (parts.length === 0 || parts[0] === "home") {
     return json({
-      message: "✨ Welcome to AI API!",
+      message: "✨ Welcome to DUC MINH's AI API!",
+      creator: "Admin Ho Duc Minh",
       usage: {
         "/home": "Show this help message",
-        "/gpt/{question}": "Ask OpenAI GPT",
-        "/gemini/{question}": "Ask Google Gemini"
+        "/gpt/{question}": "Ask GPT DUC MINH (OpenAI)",
+        "/gemini/{question}": "Ask GEMINI DUC MINH (Google)"
       }
     });
   }
@@ -25,18 +27,28 @@ export async function handler(event) {
 
   if (route === "gpt") {
     const answer = await callGPT(question);
-    return json({ model: "GPT", question, answer });
+    return json({
+      model: "GPT DUC MINH",
+      admin: "Ho Duc Minh",
+      question,
+      answer
+    });
   }
 
   if (route === "gemini") {
     const answer = await callGemini(question);
-    return json({ model: "Gemini", question, answer });
+    return json({
+      model: "GEMINI DUC MINH",
+      admin: "Ho Duc Minh",
+      question,
+      answer
+    });
   }
 
   return json({ error: "Invalid route" }, 404);
 }
 
-// -------------------- GPT --------------------
+// ======================== GPT (OpenAI) ===========================
 async function callGPT(prompt) {
   try {
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -47,18 +59,29 @@ async function callGPT(prompt) {
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        messages: [{ role: "user", content: prompt }]
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are GPT DUC MINH, an assistant created by admin Ho Duc Minh. Always introduce yourself politely as 'GPT DUC MINH created by admin Ho Duc Minh' in your first message."
+          },
+          { role: "user", content: prompt }
+        ]
       })
     });
 
     const data = await res.json();
-    return data.choices?.[0]?.message?.content || data.error?.message || "⚠️ No reply from GPT";
+    return (
+      data.choices?.[0]?.message?.content ||
+      data.error?.message ||
+      "⚠️ No reply from GPT DUC MINH"
+    );
   } catch (err) {
     return `❌ Error: ${err.message}`;
   }
 }
 
-// -------------------- GEMINI --------------------
+// ======================== GEMINI (Google) ===========================
 async function callGemini(prompt) {
   try {
     const res = await fetch(
@@ -67,7 +90,15 @@ async function callGemini(prompt) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }]
+          contents: [
+            {
+              parts: [
+                {
+                  text: `You are GEMINI DUC MINH, created by admin Ho Duc Minh. Always greet as "GEMINI DUC MINH here, made by admin Ho Duc Minh." Then answer this question: ${prompt}`
+                }
+              ]
+            }
+          ]
         })
       }
     );
@@ -76,17 +107,18 @@ async function callGemini(prompt) {
     return (
       data.candidates?.[0]?.content?.parts?.[0]?.text ||
       data.error?.message ||
-      "⚠️ No reply from Gemini"
+      "⚠️ No reply from GEMINI DUC MINH"
     );
   } catch (err) {
     return `❌ Error: ${err.message}`;
   }
 }
 
+// ======================== Helper ===========================
 function json(body, status = 200) {
   return {
     statusCode: status,
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
+    body: JSON.stringify(body, null, 2)
   };
 }
